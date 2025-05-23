@@ -1,0 +1,32 @@
+{
+  "name": "shortify-api",
+  "version": "1.0.0",
+  "description": "A simple and scalable URL shortener API built with Node.js, Express, and MongoDB.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "local": "node server.js",
+    "serve": "npm run build && node lib/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YogeshYKG/shortify-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/YogeshYKG/shortify-api/issues"
+  },
+  "homepage": "https://github.com/YogeshYKG/shortify-api#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "dotnet": "^1.1.4",
+    "express": "^5.1.0",
+    "mongoose": "^8.15.0",
+    "node-fetch": "^2.7.0",
+    "nodemon": "^3.1.10"
+  }
+}
