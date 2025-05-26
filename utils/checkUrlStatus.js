@@ -1,38 +1,103 @@
+/**
+ * checkUrlStatus.js
+ * -----------------
+ * This module provides utilities for validating and checking the status of a URL.
+ *
+ * Function Index:
+ *
+ * - checkUrlStatus(inputUrl)
+ *     → Main orchestrator function that validates the input URL, checks DNS, and confirms HTTP accessibility.
+ *
+ * - checkIfUrlShorted(inputLongUrl)
+ *     → Placeholder for checking if a given long URL has already been shortened (to be implemented).
+ *
+ * - isValidUrl(inputUrl)
+ *     → Validates whether the provided string is a syntactically valid URL.
+ *
+ * - isReachableDomain(urlObj)
+ *     → Performs DNS lookup to confirm if the domain is resolvable.
+ *
+ * - isUrlPubliclyAccessible(urlObj)
+ *     → Attempts to reach the URL using HTTP (via HEAD/GET) to confirm it is publicly accessible.
+ */
+
 const fetch = require("node-fetch");
 const dns = require("dns").promises;
 const { URL } = require("url");
-
+const modelUrl = require("../models/Url");
 const checkUrlStatus = async (inputUrl) => {
-  let url;
+  const { isValid, url, message: validationMsg } = isValidUrl(inputUrl);
+  if (!isValid) return { status: 400, message: validationMsg };
 
-  // 1. Validate URL
+  const dnsResult = await isReachableDomain(url);
+  if (!dnsResult.isReachable)
+    return { status: 400, message: dnsResult.message };
+
+  const accessResult = await isUrlPubliclyAccessible(url);
+  if (!accessResult.accessible)
+    return { status: 400, message: accessResult.message };
+
+  return { status: 200, message: "✅ All green - Valid and Reachable URL" };
+};
+
+// Function to check if the long URL exists and meets conditions (public and active)
+const checkIfUrlShorted = async (inputLongUrl) => {
   try {
-    url = new URL(inputUrl);
-  } catch (e) {
-    return { status: 400, message: "Invalid URL" };
-  }
+    const url = await modelUrl.findOne({ longUrl: inputLongUrl });
 
-  // 2. Check if domain is reachable via DNS lookup
+    if (!url) {
+      return { shortedUrlStatus: "NotFound", shortUrl: null };
+    }
+
+    if (!url.isPublic) {
+      return { shortedUrlStatus: "NotPublic", shortUrl: null };
+    }
+    return { shortedUrlStatus: "inDatabase", shortUrl: url.shortCode };
+  } catch (error) {
+    console.error("Error checking URL:", error);
+    return "Error";
+  }
+};
+
+const fetchShortUrl = async (shortCode) => {
   try {
-    await dns.lookup(url.hostname);
-  } catch (e) {
-    return { status: 400, message: "Unreachable Domain" };
+    console.log("Shortened URL:", shortUrl);
+    return shortUrl;
+  } catch (error) {
+    console.error("Error fetching short URL:", error);
+    return "Error";
   }
+};
 
-  // 3. Try HEAD and GET to determine full URL reachability
+const isValidUrl = (inputUrl) => {
+  try {
+    return { isValid: true, url: new URL(inputUrl) };
+  } catch {
+    return { isValid: false, message: "Invalid URL" };
+  }
+};
+
+const isReachableDomain = async (urlObj) => {
+  try {
+    await dns.lookup(urlObj.hostname);
+    return { isReachable: true };
+  } catch {
+    return { isReachable: false, message: "Unreachable Domain" };
+  }
+};
+
+const isUrlPubliclyAccessible = async (urlObj) => {
   try {
     const headers = { "User-Agent": "Mozilla/5.0 (Node.js)" };
 
-    // Try HEAD first
-    let response = await fetch(url.href, {
+    let response = await fetch(urlObj.href, {
       method: "HEAD",
       timeout: 8000,
       headers,
     });
 
     if (!response.ok || response.status === 405) {
-      // Fallback to GET
-      response = await fetch(url.href, {
+      response = await fetch(urlObj.href, {
         method: "GET",
         timeout: 8000,
         headers,
@@ -41,18 +106,24 @@ const checkUrlStatus = async (inputUrl) => {
 
     if (!response.ok) {
       return {
-        status: 400,
+        accessible: false,
         message: "URL is private or has CORS restrictions",
       };
     }
 
-    return { status: 200, message: "✅ All green - Valid and Reachable URL" };
-  } catch (e) {
+    return { accessible: true };
+  } catch {
     return {
-      status: 400,
+      accessible: false,
       message: "URL is private or has CORS restrictions",
     };
   }
 };
 
-module.exports = { checkUrlStatus };
+module.exports = {
+  checkUrlStatus,
+  checkIfUrlShorted,
+  isValidUrl,
+  isReachableDomain,
+  isUrlPubliclyAccessible,
+};

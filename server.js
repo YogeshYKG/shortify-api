@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 const urlRoutes = require("./routes/urlRoutes");
 
@@ -9,8 +10,9 @@ const app = express();
 
 app.use(express.json());
 
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = ["http://localhost:3001"];
 
+// cors SetUp
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -25,6 +27,15 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/shortify_dev";
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error("MongoDB connection error:", err));
+
 
 // Mount the route directly at / (not /validateUrl)
 app.use("/", urlRoutes);

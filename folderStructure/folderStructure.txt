@@ -1,0 +1,23 @@
+# Folder structure of 'Backend'
+# Generated on 26/5/2025, 4:08:51 pm
+
+- controllers [DIR]
+  - urlController.js [FILE] (1114B)
+- database [DIR]
+  - scripts [DIR]
+    - shortify_dev.js [FILE] (2434B)
+- folderStructure [DIR]
+  - folderStructure.md [FILE] (448B)
+  - folderStructure.txt [FILE] (520B)
+- generateFolderStructure.mjs [FILE] (2450B)
+- models [DIR]
+  - Url.js [FILE] (582B)
+- package-lock.json [FILE] (52187B)
+- package.json [FILE] (845B)
+- README.md [FILE] (99B)
+- routes [DIR]
+  - urlRoutes.js [FILE] (298B)
+- server.js [FILE] (911B)
+- utils [DIR]
+  - checkUrlStatus.js [FILE] (2911B)
+  - createShortUrl.js [FILE] (487B)
